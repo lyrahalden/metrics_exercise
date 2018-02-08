@@ -7,23 +7,22 @@ from model import connect_to_db, db
 from server import app
 
 
-def load_users():
+def load_households():
     """Load users from u.user into database."""
 
-    print "Users"
+    print "Households"
 
     # Delete all rows in table, so if we need to run this a second time,
-    # we won't be trying to add duplicate users
-    User.query.delete()
+    # we won't be trying to add duplicates
+    Household.query.delete()
 
-    # Read u.user file and insert data
-    for row in open("seed_data/u.user"):
+    # Read trips_gdrive.csv file and insert data
+    for row in open("data/trips_gdrive.csv"):
         row = row.rstrip()
-        user_id, age, gender, occupation, zipcode = row.split("|")
+        trip_id, date, retailer_name, brand_name, user_id, price, item_units = row.split(",")
 
-        user = User(user_id=user_id,
-                    age=age,
-                    zipcode=zipcode)
+        household = Household(user_id=user_id)
+
 
         # We need to add to the session or it won't ever be stored
         db.session.add(user)

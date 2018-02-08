@@ -11,46 +11,68 @@ db = SQLAlchemy()
 ##############################################################################
 # Model definitions
 
-class Household(db.Model):
-    """One household, represented by a primary buyer, or user"""
+# class Household(db.Model):
+#     """One household, represented by a primary buyer, or user"""
 
-    __tablename__ = "households"
+#     __tablename__ = "households"
 
-    household_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    # user_id is the data directly from the csv file
-    user_id = db.Column(db.Integer)
+#     household_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     # user_id is the data directly from the csv file
+#     user_id = db.Column(db.Integer)
 
-    def __repr__(self):
-        """Provide helpful representation when printed."""
+#     def __repr__(self):
+#         """Provide helpful representation when printed."""
 
-        return "<Household household_id=%s" % (self.household_id)
-
-
-class Brand(db.Model):
-    """A brand"""
-
-    __tablename__ = "brands"
-
-    brand_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    brand_name = db.Column(db.String(80))
-
-    def __repr__(self):
-        """Provide helpful representation when printed."""
-
-        return "<Brand brand_id=%s" % (self.brand_id)
+#         return "<Household household_id=%s" % (self.household_id)
 
 
-class Retailer(db.Model):
+# class Brand(db.Model):
+#     """A brand"""
 
-    __tablename__ = "retailers"
+#     __tablename__ = "brands"
 
-    retailer_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    retailer_name = db.Column(db.String(80))
+#     brand_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     brand_name = db.Column(db.String(80))
 
-    def __repr__(self):
-        """Provide helpful representation when printed."""
+#     def __repr__(self):
+#         """Provide helpful representation when printed."""
 
-        return "<Retailer retailer_id=%s" % (self.retailer_id)
+#         return "<Brand brand_id=%s" % (self.brand_id)
+
+
+# class Retailer(db.Model):
+
+#     __tablename__ = "retailers"
+
+#     retailer_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+#     retailer_name = db.Column(db.String(80))
+
+#     def __repr__(self):
+#         """Provide helpful representation when printed."""
+
+#         return "<Retailer retailer_id=%s" % (self.retailer_id)
+
+
+# class Purchase(db.Model):
+#     """A purchase event"""
+
+#     __tablename__ = "purchases"
+
+#     purchase_id = db.Column(db.Integer, primary_key=True)
+#     household_id = db.Column(db.Integer, db.ForeignKey('households.household_id'), nullable=False)
+#     brand_id = db.Column(db.Integer, db.ForeignKey('brands.brand_id'), nullable=False)
+#     retailer_id = db.Column(db.Integer, db.ForeignKey('retailers.retailer_id'), nullable=False)
+#     price = db.Column(db.Integer)
+#     date = db.Column(db.DateTime, nullable=True)
+
+#     household = db.relationship('Household', backref='purchases')
+#     brand = db.relationship('Brand', backref='purchases')
+#     retailer = db.relationship('Retailer', backref='purchases')
+
+#     def __repr__(self):
+#         """Provide helpful representation when printed."""
+
+#         return "<Purchase purchase_id=%s" % (self.purchase_id)
 
 
 class Purchase(db.Model):
@@ -58,15 +80,13 @@ class Purchase(db.Model):
 
     __tablename__ = "purchases"
 
-    purchase_id = db.Column(db.Integer, autoincrement=True, primary_key=True)
-    household_id = db.Column(db.Integer, db.ForeignKey('households.household_id'), nullable=False)
-    brand_id = db.Column(db.Integer, db.ForeignKey('brands.brand_id'), nullable=False)
-    retailer_id = db.Column(db.Integer, db.ForeignKey('retailers.retailer_id'), nullable=False)
+    purchase_id = db.Column(db.Integer, primary_key=True)
+    household_id = db.Column(db.Integer, nullable=False)
+    brand_name = db.Column(db.String(80), nullable=False)
+    retailer_name = db.Column(db.String(80), nullable=False)
+    price = db.Column(db.Integer)
+    units_sold = db.Column(db.Integer)
     date = db.Column(db.DateTime, nullable=True)
-
-    household = db.relationship('Household', backref='purchases')
-    brand = db.relationship('Brand', backref='purchases')
-    retailer = db.relationship('Brand', backref='purchases')
 
     def __repr__(self):
         """Provide helpful representation when printed."""
@@ -101,6 +121,22 @@ def connect_to_db(app):
 def retailer_affinity(focus_brand):
     """Given a brand, returns the strongest retailer affinity relative to other brands"""
 
+    focus_brand_obj = Brand.query.filter_by(brand_name=focus_brand).first()
+
+    purchases_of_focus_brand = db.session.query(Purchase, Brand).join(Purchase).filter(Brand.name=focus_brand).all()
+
+    for purchase in purchases_of_focus_brand:
+
+    # retailer_list = Retailer.query.all()
+
+    # affinity_score = 0
+
+    # for retailer in retailer_list:
+    #     purchases = Purchase.query.filter_by(brand_name=)
+
+
+
+
 
 def count_hhs(brand=None, retailer=None, start_date=None, end_date=None):
     """Given inputs, returns the number of households that matches the inputs"""
@@ -116,5 +152,7 @@ if __name__ == "__main__":
     connect_to_db(app)
     print "Connected to DB."
 
+    #delete to create new tables
+    db.delete_all()
     # in case tables have not been created yet
     db.create_all()
