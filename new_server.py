@@ -31,17 +31,32 @@ import pandas as pd
 ##############################################################################
 # Helper functions
 
+def read_and_clean():
+    """A helper function to read in data from the csv file and do some cleaning/parsing for price and date"""
+
+    # read in csv data, parse dates, set index to Trip ID
+    trips_df = pd.read_csv("./data/trips_gdrive.csv", sep=',', header=0, parse_dates=['Date'], index_col=['Trip ID'])
+
+    # remove dollar sign from price and change data type to int
+    trips_df['Item Dollars'] = (trips_df['Item Dollars'].str.strip('$').astype(int))
+
+    return trips_df
+
+
 def retailer_affinity(focus_brand):
     """Given a brand, returns the strongest retailer affinity relative to other brands"""
 
-    # read in csv data
-    trips_df = pd.read_csv("./data/trips_gdrive.csv", sep=',', header=0, parse_dates=['Date'], index_col=['Trip ID'])
+    # call helper function to read and clean csv file
+    trips_df = read_and_clean()
 
     # if the brand name passed in exists in the dataframe
     if str(focus_brand) in ['Monster', 'Rockstar', 'Red Bull', '5 Hour Energy']:
+
         # then select rows where the brand column matches the one we are looking for
         trips_focus_brand = (trips_df[trips_df['Parent Brand'] == focus_brand])
+
     else:
+
         # otherwise, return an error message
         return "Sorry, not a brand we are tracking at this time."
 
@@ -64,6 +79,24 @@ def count_hhs(brand=None, retailer=None, start_date=None, end_date=None):
 
 def top_buying_brand():
     """Returns the brand with the top buying rate ($ spent per household)"""
+
+    # call helper function to read and clean csv file
+    trips_df = read_and_clean()
+
+    # add up all the dollars spent for each brand
+    dollars_spent = trips_df[['Parent Brand', 'Item Dollars']].groupby('Parent Brand').aggregate(sum)
+
+    # count up the unique number of households (User ID column) that made purchases from each brand
+    num_households = trips_df[['Parent Brand', 'User ID']].groupby('Parent Brand')['User ID'].nunique()
+
+    # add unique number of households as a column in dollars_spent
+    dollars_spent['num_households'] = num_households
+
+    # divide the $ spent by the number of households for each brand
+    buying_rate = dollars_spent['Item Dollars'] / dollars_spent['num_households']
+
+    # return the value of the index at the top of the list, which is the name of the brand with the highest buying rate
+    return buying_rate.index[0]
 
 
 # if __name__ == "__main__":
