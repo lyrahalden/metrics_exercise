@@ -50,7 +50,7 @@ def retailer_affinity(focus_brand):
     trips_df = read_and_clean()
 
     # if the brand name passed in exists in the dataframe
-    if str(focus_brand) in ['Monster', 'Rockstar', 'Red Bull', '5 Hour Energy']:
+    if str(focus_brand) in trips_df['Parent Brand'].values:
 
         # then select rows where the brand column matches the one we are looking for
         trips_focus_brand = (trips_df[trips_df['Parent Brand'] == focus_brand])
@@ -63,9 +63,6 @@ def retailer_affinity(focus_brand):
     # only select the Retailer and Item Dollars columns
     trips_focus_brand = trips_focus_brand[['Retailer', 'Item Dollars']]
 
-    # remove dollar sign from price and change data type to int, so that summing will work
-    trips_focus_brand['Item Dollars'] = (trips_focus_brand['Item Dollars'].str.strip('$').astype(int))
-
     # sum up Item Dollar values and group by Retailer, then sort by the sum of Item Dollar values with biggest sum at the top
     most_selling_retailer = trips_focus_brand.groupby('Retailer').aggregate(sum).sort_values('Item Dollars', ascending=False)
 
@@ -75,6 +72,35 @@ def retailer_affinity(focus_brand):
 
 def count_hhs(brand=None, retailer=None, start_date=None, end_date=None):
     """Given inputs, returns the number of households that matches the inputs"""
+
+    # read in the csv file and clean/parse it
+    trips_df = read_and_clean()
+
+    # check if a brand name has been passed in and exists in the Parent Brand column
+    if brand and brand in trips_df['Parent Brand'].values:
+
+        # if so, select the rows with the brand name
+        trips_df = (trips_df[trips_df['Parent Brand'] == brand])
+
+    # check if a retailer name has been passed in and exists in the Retailer column
+    if retailer and retailer in trips_df['Retailer'].values:
+
+        trips_df = (trips_df[trips_df['Retailer'] == retailer])
+
+    # if start date exists
+    if start_date:
+
+        # filter out rows with dates that are less than the start date
+        trips_df = (trips_df[trips_df['Date'] >= datetime.strptime(start_date, '%Y-%m-%d')])
+
+    # if end date exists
+    if end_date:
+
+        # filter out rows with dates that are greater than the end date
+        trips_df = (trips_df[trips_df['Date'] <= datetime.strptime(end_date, '%Y-%m-%d')])
+
+    # return the number of unique occurrences of User ID's in the modified dataframe
+    return trips_df['User ID'].nunique()
 
 
 def top_buying_brand():
