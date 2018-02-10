@@ -153,7 +153,6 @@ def get_retailer():
     """Makes ajax call to get retailer with highest affinity"""
 
     brand = request.form.get("brand")
-    print brand
 
     retailer = retailer_affinity(brand)
 

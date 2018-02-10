@@ -15,7 +15,7 @@
 
 <form action="/" method=POST>
 
-    Second metric: Find out how many households meet some criteria!
+    <h3>Second metric: Find out how many households meet some criteria!</h3>
     <br>
     All of the following choices are optional:
     <br>
@@ -50,12 +50,14 @@
 </form>
 
 <br>
-    Third Metric: Step right up! Choose a brand, any brand!
+    <h3>Third Metric: Step right up! Choose a brand, any brand!
+    Find out what retailer it is most closely associated with! </h3>
     <div id="brand">
     {% for brand in brands %}
         <button class="chosen-brand" type="button" value={{brand}}>{{brand}}</button>
         <br>
     {% endfor %}
     </div>
-    <div id="retailer"></div>
+    <br>
+    The answer is:<div id="retailer"></div>
 {% endblock %}
