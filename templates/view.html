@@ -1,0 +1,61 @@
+
+{% extends 'base.html' %}
+
+
+{% block title %} Homepage {% endblock %}
+
+
+{% block content %}
+
+<h1>Get yer Metrics here! Fresh metrics a-plenty!</h1>
+
+<br>
+<h3>First metric: The brand with the top buying rate ($ spent/household) is... (drumroll, please!)... {{top_brand}}!!!</h3>
+<br>
+
+<form action="/" method=POST>
+
+    Second metric: Find out how many households meet some criteria!
+    <br>
+    All of the following choices are optional:
+    <br>
+    Pick a brand from the dropdown:
+    <select name="brand">
+        <option name="brand" value="">None
+    {% for brand in brands %}
+
+        <option name="brand" value="{{brand}}">{{brand}}
+
+    {% endfor %}
+    </select>
+    <br>
+    Pick a retailer from the dropdown:
+    <select name="retailer">
+        <option name="brand" value="">None
+    {% for retailer in retailers %}
+
+        <option name="retailer" value="{{retailer}}">{{retailer}}
+
+    {% endfor %}
+    </select>
+    <br>
+    Enter a start date between January 2nd, 2014 and June 30th, 2014.
+    <input name="start" type="date" min="2014-01-02" max="2014-06-30">
+    <br>
+    Enter an end date between January 2nd, 2014 and June 30th, 2014.
+    <input name="end" type="date" min="2014-01-02" max="2014-06-30">
+    <br>
+    <input type="submit" value="Submit">
+
+</form>
+
+<br>
+    Third Metric: Step right up! Choose a brand, any brand!
+    <div id="brand">
+    {% for brand in brands %}
+        <button class="chosen-brand" type="button" value={{brand}}>{{brand}}</button>
+        <br>
+    {% endfor %}
+    </div>
+    <div id="retailer"></div>
+{% endblock %}

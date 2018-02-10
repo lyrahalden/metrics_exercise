@@ -1,14 +1,18 @@
 <!doctype html>
 <html>
 <head>
+
   <title>{% block title %} TITLE GOES HERE {% endblock %}</title>
+
+  <link rel="stylesheet" href="/static/style.css">
+
 </head>
 
 <body>
 
   {% block content %} CONTENT GOES HERE {% endblock %}
 
-<script src="http://code.jquery.com/jquery.js"></script>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="/static/ajax.js"></script>
 
 </body>
