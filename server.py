@@ -36,7 +36,7 @@ def read_and_clean():
         and do some cleaning/parsing for price and date"""
 
     # read in csv data, parse dates, set index to Trip ID
-    df = pd.read_csv("./data/trips_gdrive.csv", sep=',', header=0, 
+    df = pd.read_csv("./data/trips_gdrive.csv", sep=',', header=0,
                         parse_dates=['Date'], index_col=['Trip ID'])
 
     # remove dollar sign from price and change data type to int
@@ -46,7 +46,7 @@ def read_and_clean():
 
 
 def retailer_affinity(focus_brand):
-    """Given a brand, returns the strongest retailer affinity relative to other brands"""
+    """Given a brand, returns a dataframe with retailer names and total dollars sold of that brand"""
 
     # save a copy of global df in local variable
     trips_df = copy(GLOBAL_DF)
@@ -69,12 +69,12 @@ def retailer_affinity(focus_brand):
     # Item Dollar values with biggest sum at the top
     most_selling_retailer = trips_focus_brand.groupby('Retailer').aggregate(sum).sort_values('Item Dollars', ascending=False)
 
-    # returns the value of the index of the first row, which is the retailer name
+    # returns a dataframe with retailer names as indices and total dollars sold of that brand as values
     return most_selling_retailer
 
 
 def count_hhs(brand=None, retailer=None, start_date=None, end_date=None):
-    """Given inputs, returns the number of households that matches the inputs"""
+    """Given inputs, returns the number of households that made purchases that match the inputs"""
 
     # save a copy of global df in local variable
     trips_df = copy(GLOBAL_DF)
@@ -102,12 +102,12 @@ def count_hhs(brand=None, retailer=None, start_date=None, end_date=None):
         # filter out rows with dates that are greater than the end date
         trips_df = (trips_df[trips_df['Date'] <= datetime.strptime(end_date, '%Y-%m-%d')])
 
-    # return the number of unique occurrences of User ID's in the modified dataframe
+    # return the number of unique values of User ID (household)
     return trips_df['User ID'].nunique()
 
 
 def top_buying_brand():
-    """Returns the brand with the top buying rate ($ spent per household)"""
+    """Returns the buying rates ($ spent per household) of each brand"""
 
     # save a copy of global df in local variable
     trips_df = copy(GLOBAL_DF)
@@ -134,13 +134,12 @@ GLOBAL_DF = read_and_clean()
 
 @app.route('/', methods=["GET", "POST"])
 def index():
-    """Homepage."""
+    """Homepage and calls count_hhs function"""
 
     if request.method == "GET":
 
         return render_template('view.html',
-            retailers=GLOBAL_DF['Retailer'].unique(), brands=GLOBAL_DF['Parent Brand'].unique(),
-            top_brand=top_buying_brand(), )
+            retailers=GLOBAL_DF['Retailer'].unique(), brands=GLOBAL_DF['Parent Brand'].unique())
 
     elif request.method == "POST":
 
@@ -149,8 +148,9 @@ def index():
         brand = request.form.get("brand")
         retailer = request.form.get("retailer")
 
-        return render_template('layouts/hhs_answer.html',
-            result=count_hhs(brand=brand, retailer=retailer, start_date=start_date, end_date=end_date))
+        num_hhs = count_hhs(brand=brand, retailer=retailer, start_date=start_date, end_date=end_date)
+
+        return render_template('layouts/hhs_answer.html', num_hhs=num_hhs)
 
 
 @app.route("/affinity", methods=["POST"])

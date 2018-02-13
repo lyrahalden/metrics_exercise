@@ -2,30 +2,20 @@
 {% extends 'base.html' %}
 
 
-{% block title %} Homepage {% endblock %}
+{% block title %} Unique households {% endblock %}
 
 
 {% block content %}
 
-The number of households that match that criteria: {{result}}. 
-
- <a href="/">Back to Form</a>
-
+<h3>{{num_hhs}} households match that criteria.
+    <br>
+    Try again, it's fun!
+    <br>
+    <a href='/'>Back to homepage</a>
+</h3>
 
 {% endblock %}
 
-{% block morescripts %} 
-
-    <!-- D3.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-    <!-- Plotly.js -->
-    <script src="https://d14fo0winaifog.cloudfront.net/plotly-basic.js"></script>
-
-    <script type="text/javascript">
-        var graph = {{graphJSON | safe}};
-        Plotly.plot("graph-0", graph.data, graph.layout);
-    </script>
+{% block scripts %} 
 
 {% endblock %}
