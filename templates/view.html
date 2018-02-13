@@ -11,7 +11,7 @@
 
 <br>
 <h3>First metric: The brand with the top buying rate ($ spent/household) is... (drumroll, please!)...
-<a href='/plot'>{{top_brand}}!!!</h3></a>
+<a href='/buying_rate'>(Click here)</h3></a>
 <br>
 
 <form action="/" method=POST>
@@ -53,12 +53,16 @@
 <br>
     <h3>Third Metric: Step right up! Choose a brand, any brand!
     Find out what retailer it is most closely associated with! </h3>
-    <div id="brand">
-    {% for brand in brands %}
-        <button class="chosen-brand" type="button" value={{brand}}>{{brand}}</button>
-        <br>
-    {% endfor %}
-    </div>
-    <br>
-    The answer is:<div id="retailer"></div>
+
+    <form action="/affinity" method=POST>
+        Pick a brand from the dropdown:
+        <select name="brand">
+            {% for brand in brands %}
+
+                <option name="brand" value="{{brand}}">{{brand}}
+
+            {% endfor %}
+        </select>
+        <input type="submit" value="Submit">
+    </form>
 {% endblock %}

@@ -65,12 +65,12 @@ def retailer_affinity(focus_brand):
     # only select the Retailer and Item Dollars columns
     trips_focus_brand = trips_focus_brand[['Retailer', 'Item Dollars']]
 
-    # sum up Item Dollar values and group by Retailer, then sort by the sum of 
+    # sum up Item Dollar values and group by Retailer, then sort by the sum of
     # Item Dollar values with biggest sum at the top
     most_selling_retailer = trips_focus_brand.groupby('Retailer').aggregate(sum).sort_values('Item Dollars', ascending=False)
 
     # returns the value of the index of the first row, which is the retailer name
-    return most_selling_retailer.index[0]
+    return most_selling_retailer
 
 
 def count_hhs(brand=None, retailer=None, start_date=None, end_date=None):
@@ -124,9 +124,8 @@ def top_buying_brand():
     # divide the $ spent by the number of households for each brand
     buying_rate = dollars_spent['Item Dollars'] / dollars_spent['num_households']
 
-    # return the value of the index at the top of the list, 
-    # which is the name of the brand with the highest buying rate
-    return buying_rate.index[0]
+    # returns a dataframe with the brands as the index and the buying rate as values
+    return buying_rate
 
 ##############################################################################
 
@@ -150,41 +149,58 @@ def index():
         brand = request.form.get("brand")
         retailer = request.form.get("retailer")
 
-        return render_template('hhs_answer.html',
+        return render_template('layouts/hhs_answer.html',
             result=count_hhs(brand=brand, retailer=retailer, start_date=start_date, end_date=end_date))
 
 
-@app.route("/affinity.json", methods=["POST"])
+@app.route("/affinity", methods=["POST"])
 def get_retailer():
-    """Makes ajax call to get retailer with highest affinity"""
+    """calls the retailer affinity function and plots the respective affinities"""
 
+    # gets the brand name from the form
     brand = request.form.get("brand")
 
-    retailer = retailer_affinity(brand)
+    # calls the retailer affinity function with the brand the user entered
+    # stores the results in a dataframe 
+    most_selling_retailer = retailer_affinity(brand)
 
-    json_retailer = {"retailer": retailer}
+    # stores the name of the retailer that sold the most of that brand
+    top_retailer = most_selling_retailer.index[0]
 
-    return jsonify(json_retailer)
+    graph = dict(
+        data=[go.Bar(
+            x=most_selling_retailer.index.values,
+            y=most_selling_retailer['Item Dollars']
+        )],
+        layout=dict(
+            title='',
+            yaxis=dict(
+                title="Total Dollars of Product Sold By Retailer"
+            ),
+            xaxis=dict(
+                title="Retailers"
+            )
+        )
+    )
+
+    # Convert the figures to JSON
+    graphJSON = json.dumps(graph, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # Render the Template
+    return render_template('layouts/affinity.html', graphJSON=graphJSON, top_retailer=top_retailer, brand=brand)
 
 
-@app.route("/plot")
-def show_plot():
-    # Create the Plotly Data Structure
+@app.route("/buying_rate")
+def plot_buying_rate():
+    """calls the buying rate function and plots the respective rates to show the top brand"""
 
-    trips_df = copy(GLOBAL_DF)
+    #calls the top buying brand function
+    buying_rate = top_buying_brand()
 
-    # add up all the dollars spent for each brand
-    dollars_spent = trips_df[['Parent Brand', 'Item Dollars']].groupby('Parent Brand').aggregate(sum)
+    # stores the name of the top brand
+    top_brand = buying_rate.index[0]
 
-    # count up the unique number of households (User ID column) that made purchases from each brand
-    num_households = trips_df[['Parent Brand', 'User ID']].groupby('Parent Brand')['User ID'].nunique()
-
-    # add unique number of households as a column in dollars_spent
-    dollars_spent['num_households'] = num_households
-
-    # divide the $ spent by the number of households for each brand
-    buying_rate = dollars_spent['Item Dollars'] / dollars_spent['num_households']
-
+    #creates the Plotly data structure
     graph = dict(
         data=[go.Bar(
             x=buying_rate.index.values,
@@ -205,7 +221,7 @@ def show_plot():
     graphJSON = json.dumps(graph, cls=plotly.utils.PlotlyJSONEncoder)
 
     # Render the Template
-    return render_template('layouts/chart.html', graphJSON=graphJSON)
+    return render_template('layouts/buying_rate.html', graphJSON=graphJSON, top_brand=top_brand)
 
 
 if __name__ == "__main__":
