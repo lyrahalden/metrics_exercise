@@ -1,14 +1,20 @@
+"""Metrics for Energy Drinks"""
+
 import pandas as pd
+
+import json
+
+import plotly
+
+import numpy as np
+
+import plotly.graph_objs as go
 
 from datetime import datetime
 
 from copy import copy
 
-"""Metrics for Energy Drinks"""
-
 from jinja2 import StrictUndefined
-
-from flask_debugtoolbar import DebugToolbarExtension
 
 from flask import (Flask, render_template, redirect, request, jsonify)
 
@@ -161,14 +167,52 @@ def get_retailer():
     return jsonify(json_retailer)
 
 
+@app.route("/plot")
+def show_plot():
+    # Create the Plotly Data Structure
+
+    trips_df = copy(GLOBAL_DF)
+
+    # add up all the dollars spent for each brand
+    dollars_spent = trips_df[['Parent Brand', 'Item Dollars']].groupby('Parent Brand').aggregate(sum)
+
+    # count up the unique number of households (User ID column) that made purchases from each brand
+    num_households = trips_df[['Parent Brand', 'User ID']].groupby('Parent Brand')['User ID'].nunique()
+
+    # add unique number of households as a column in dollars_spent
+    dollars_spent['num_households'] = num_households
+
+    # divide the $ spent by the number of households for each brand
+    buying_rate = dollars_spent['Item Dollars'] / dollars_spent['num_households']
+
+    graph = dict(
+        data=[go.Bar(
+            x=buying_rate.index.values,
+            y=buying_rate.iloc[0:4]
+        )],
+        layout=dict(
+            title='',
+            yaxis=dict(
+                title="Dollars Spent per Household"
+            ),
+            xaxis=dict(
+                title="Brands"
+            )
+        )
+    )
+
+    # Convert the figures to JSON
+    graphJSON = json.dumps(graph, cls=plotly.utils.PlotlyJSONEncoder)
+
+    # Render the Template
+    return render_template('layouts/chart.html', graphJSON=graphJSON)
+
+
 if __name__ == "__main__":
     # We have to set debug=True here, since it has to be True at the
     # point that we invoke the DebugToolbarExtension
     app.debug = True
     # make sure templates, etc. are not cached in debug mode
     app.jinja_env.auto_reload = app.debug
-
-    # # Use the DebugToolbar
-    # DebugToolbarExtension(app)
 
     app.run(port=5000, host='0.0.0.0')
